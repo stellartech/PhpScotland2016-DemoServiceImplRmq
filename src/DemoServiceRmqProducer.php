@@ -16,11 +16,14 @@ class DemoServiceRmqProducer implements DemoServiceInterface
 		$this->connect();
 	}
 
+	public function __destruct() {
+		if(!is_null($this->_amqp_chan)) $this->_amqp_chan->close();
+		if(!is_null($this->_amqp_conn)) $this->_amqp_conn->close();
+	}
+
 	public function handleRequest(DemoServiceRequest $request) {
 		$msg = new AMQPMessage($request->get());
 		$this->_amqp_chan->basic_publish($msg, "", $_ENV["RMQ_QUEUE"]);
-		$this->_amqp_chan->close()
-		$this->_amqp_conn->close();
 		$message = $request->getAsArray();
 		$message['result'] = 0;
 		$message['msg'] = 'See websocket response';
