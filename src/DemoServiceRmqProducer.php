@@ -59,5 +59,11 @@ class DemoServiceRmqProducer implements DemoServiceInterface
 			true   // auto_delete
 		);
 	}
+
+	protected function log($in) {
+		if(isset($_ENV["VERBOSE"]) && (int)$_ENV["VERBOSE"] == 1) {
+			error_log($in);
+		}
+	}
 }
 
