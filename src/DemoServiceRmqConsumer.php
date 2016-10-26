@@ -1,13 +1,12 @@
 <?php
 
-namespace PhpScotland2016\Demo\Service\Impls\Rmq;
+namespace PhpScotland2016\Demo\Service\Impl\Rmq;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
-
-use PhpScotland2016\Demo\Service\Impls\DemoServiceLocal;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceRequest;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceResponse;
+use PhpScotland2016\Demo\Service\Impl\Direct\DemoServiceImplDirect;
 
 class DemoServiceRmqConsumer
 {
@@ -54,7 +53,7 @@ class DemoServiceRmqConsumer
 	}
 
 	private function handleRequest(DemoServiceRequest $request) {
-		$service = new DemoServiceLocal;
+		$service = new DemoServiceImplDirect;
 		return $service->handleRequest($request);
 	}
 

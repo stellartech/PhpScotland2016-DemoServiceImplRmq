@@ -1,6 +1,6 @@
 <?php
 
-namespace PhpScotland2016\Demo\Service\Impls\Rmq;
+namespace PhpScotland2016\Demo\Service\Impl\Rmq;
 
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceRequest;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceResponse;
