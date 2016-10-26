@@ -2,11 +2,11 @@
 
 namespace PhpScotland2016\Demo\Service\Impls\Rmq;
 
+use PhpScotland2016\Demo\Service\Impls\DemoServiceLocal;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceRequest;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceResponse;
-use PhpScotland2016\Demo\Service\Interfaces\DemoServiceInterface;
 
-class DemoServiceRmqConsumer implements DemoServiceInterface
+class DemoServiceRmqConsumer
 {
 	protected $_context = null;
 	protected $_push = null;
@@ -40,14 +40,14 @@ class DemoServiceRmqConsumer implements DemoServiceInterface
 		}
 		$this->log("Connected");
 
-		$this->chan = $this->_amqp_conn->channel();
-		$this->chan->queue_declare($_ENV["RMQ_QUEUE"],
+		$this->_amqp_chan = $this->_amqp_conn->channel();
+		$this->_amqp_chan->queue_declare($_ENV["RMQ_QUEUE"],
 			false, // passive
 			false, // durable
 			false, // exclusive
 			true   // auto_delete
 		);
-		$this->_chan->basic_qos(0, 10, true);
+		$this->_amqp_chan->basic_qos(0, 10, true);
 
 		if(extension_loaded("pcntl")) {
 			pcntl_signal(SIGTERM, function($signo) {
@@ -75,7 +75,7 @@ class DemoServiceRmqConsumer implements DemoServiceInterface
 		return $service->handleRequest($request);
 	}
 
-	private function recv() {
+	private function try_recv() {
 		$json = false;
 		$this->_amqp_chan->basic_consume($_ENV["RMQ_QUEUE"],
 			false, // consumer_tag
@@ -93,9 +93,16 @@ class DemoServiceRmqConsumer implements DemoServiceInterface
 		if(!is_string($json)) {
 			usleep(10); // No CPU 100% please.	
 		}
-		else {
-			$this->log("RX:".$json);
+		return $json;
+	}
+
+	private function recv() {
+		$json = false;
+		do {
+			$json = $this->try_recv():
 		}
+		while(!is_string($json) || empty($json));
+		$this->log("RX:".$json);
 		return $json;
 	}
 

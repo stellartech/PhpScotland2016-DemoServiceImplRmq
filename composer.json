@@ -11,10 +11,15 @@
 		"type": "vcs",
 		"url": "https://github.com/A-j-K/PhpScotland2016-DemoServiceIf.git",
 		"package-path": "PhpScotland2016/DemoServiceInterface"
+	},{
+		"type": "vcs",
+		"url": "https://github.com/A-j-K/PhpScotland2016-DemoServiceImpl.git",
+		"package-path": "PhpScotland2016/DemoServiceImpl"
 	}],
 	"require": {
 		"ext-zmq": "*",
 		"php-amqplib/php-amqplib": "2.6.*",
+		"PhpScotland2016/DemoServiceImpl": "dev-master",
 		"PhpScotland2016/DemoServiceInterface": "1.0.0.x-dev"
 	},
 	"autoload": {
