@@ -2,6 +2,9 @@
 
 namespace PhpScotland2016\Demo\Service\Impl\Rmq;
 
+use PhpAmqpLib\Message\AMQPMessage;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceRequest;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceResponse;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceInterface;
