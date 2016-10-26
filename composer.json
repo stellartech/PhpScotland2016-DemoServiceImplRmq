@@ -1,0 +1,26 @@
+{
+	"name": "PhpScotland2016/DemoServiceImplRmq",
+	"description": "DemoService implementation using RabbitMQ",
+	"license": "PHP",
+	"keywords": ["phpscotland", "phpscotland2016"],
+	"authors": [{
+			"name": "Andy Kirkham",
+			"email": "andy@spiders-lair.com"
+	}],
+	"repositories": [{
+		"type": "vcs",
+		"url": "https://github.com/A-j-K/PhpScotland2016-DemoServiceIf.git",
+		"package-path": "PhpScotland2016/DemoServiceInterface"
+	}],
+	"require": {
+		"ext-zmq": "*",
+		"php-amqplib/php-amqplib": "2.6.*",
+		"PhpScotland2016/DemoServiceInterface": "1.0.0.x-dev"
+	},
+	"autoload": {
+		"psr-4": {
+			"PhpScotland2016\\Demo\\Service\\Impls\\Rmq\\": "src/"
+		}
+	}
+}
+
