@@ -2,6 +2,9 @@
 
 namespace PhpScotland2016\Demo\Service\Impls\Rmq;
 
+use PhpAmqpLib\Message\AMQPMessage;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+
 use PhpScotland2016\Demo\Service\Impls\DemoServiceLocal;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceRequest;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceResponse;
@@ -15,10 +18,62 @@ class DemoServiceRmqConsumer
 	protected $_amqp_chan = null;
 
 	public function __construct(/* ToDo, DI here. PRs gladly accepted :) */) {
+		$this->connect();
+	}
+
+	public function execute() {
+		$this->_amqp_chan->basic_consume($_ENV["RMQ_QUEUE"],
+			false, // consumer_tag
+			false, // no_local
+			false, // no_ack
+			false, // exclusive 
+			false, // nowait
+			[$this, "callback"]
+		);
+		$this->log("Entering AMQP Lib event loop");
+		while($this->_run && count($this->_amqp_chan->callbacks)) {
+			usleep(10);
+			$this->_amqp_chan->wait();
+		}
+		$this->_amqp_chan->close();
+		$this->_amqp_conn->close();
+		$this->log("Terminating");
+	}
+
+	public function callback(AMQPMessage $msg) {
+		$json = $msg->getBody();
+		if(is_string($json) && !empty($json)) {
+			$this->log("RX: ". $json);
+			$request = new DemoServiceRequest($json);
+			$response = $this->handleRequest($request);
+			$this->send($response);
+		}
+		$deliver_tag = $msg->delivery_info["delivery_tag"];
+		$channel = $msg->delivery_info["channel"];
+		$channel->basic_ack($deliver_tag);
+	}
+
+	private function handleRequest(DemoServiceRequest $request) {
+		$service = new DemoServiceLocal;
+		return $service->handleRequest($request);
+	}
+
+	private function send(DemoServiceResponse $response) {
+		$this->log("TX:".$response->getJson());
+		$this->_push->send($response->getJson(), \ZMQ::MODE_NOBLOCK);
+	}
+
+	private function log($in) {
+		if(isset($_ENV["VERBOSE"]) && (int)$_ENV["VERBOSE"] == 1) {
+			error_log($in);
+		}
+	}
+
+	private function connect() {
 		$this->_context = new \ZMQContext(1, true);
 		$conn = "tcp://" .  $_ENV["CROSSBAR_HOST"] .":". $_ENV["CROSSBAR_ZMQ_PULL_PORT"];
 		$this->log("Connecting to $conn");
-		$this->_push = $context->getSocket(\ZMQ::SOCKET_PUSH, null);
+		$this->_push = $this->_context->getSocket(\ZMQ::SOCKET_PUSH, null);
 		$this->_push->connect($conn);
 	
 		$this->log("Connecting to RabbitMQ server: ".$_ENV["RMQ_HOST"].':'.$_ENV["RMQ_PORT"]);
@@ -56,65 +111,5 @@ class DemoServiceRmqConsumer
 		}
 	}
 
-	public function execute() {
-		while($this->_run) {
-			try {
-				$request = new DemoServiceRequest($this->recv());
-				$response = $this->handleRequest($request);
-				$this->send($response);
-			}
-			catch(\Exception $e) {
-				$this->log($e->getMessage());
-			}
-		}
-		$this->log("Terminating");
-	}
-
-	private function handleRequest(DemoServiceRequest $request) {
-		$service = new DemoServiceLocal;
-		return $service->handleRequest($request);
-	}
-
-	private function try_recv() {
-		$json = false;
-		$this->_amqp_chan->basic_consume($_ENV["RMQ_QUEUE"],
-			false, // consumer_tag
-			false, // no_local
-			false, // no_ack
-			false, // exclusive 
-			true,  // nowait
-			function(AMQPMessage $msg) use (json) {
-				$json = $msg->getBody();
-				$deliver_tag = $msg->delivery_info["delivery_tag"];
-				$channel = $msg->delivery_info["channel"];
-				$channel->basic_ack($deliver_tag);	
-			}
-		);
-		if(!is_string($json)) {
-			usleep(10); // No CPU 100% please.	
-		}
-		return $json;
-	}
-
-	private function recv() {
-		$json = false;
-		do {
-			$json = $this->try_recv():
-		}
-		while(!is_string($json) || empty($json));
-		$this->log("RX:".$json);
-		return $json;
-	}
-
-	private function send(DemoServiceResponse $response) {
-		$this->log("TX:".$response->getJson());
-		$this->_push->send($response->getJson(), \ZMQ::MODE_NOBLOCK);
-	}
-
-	private function log($in) {
-		if(isset($_ENV["VERBOSE"]) && (int)$_ENV["VERBOSE"] == 1) {
-			error_log($in);
-		}
-	}
 }
 
