@@ -6,7 +6,7 @@ use PhpScotland2016\Demo\Service\Interfaces\DemoServiceRequest;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceResponse;
 use PhpScotland2016\Demo\Service\Interfaces\DemoServiceInterface;
 
-class DemoServiceRmq implements DemoServiceInterface
+class DemoServiceRmqConsumer implements DemoServiceInterface
 {
 	protected $_context = null;
 	protected $_push = null;
