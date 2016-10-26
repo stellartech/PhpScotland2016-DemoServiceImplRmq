@@ -13,7 +13,7 @@
 		"package-path": "PhpScotland2016/DemoServiceInterface"
 	},{
 		"type": "vcs",
-		"url": "https://github.com/A-j-K/PhpScotland2016-DemoServiceImplDirect.git",
+		"url": "https://github.com/stellartech/PhpScotland2016-DemoServiceImplDirect.git",
 		"package-path": "PhpScotland2016/DemoServiceImplDirect"
 	}],
 	"require": {
